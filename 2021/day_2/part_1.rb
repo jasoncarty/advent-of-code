@@ -1010,11 +1010,10 @@ up 1
 forward 2
 """
 
-steps = real_input.split("\n").reject(&:empty?)
 depth = 0
 horizontal_position = 0
 
-steps.each { |step|
+real_input.split("\n").reject(&:empty?).each { |step|
   direction = step.split(" ")[0]
   amount = step.split(" ")[1].to_i
   case direction
