@@ -1,6 +1,4 @@
-require "./input.rb"
-
-input = @real_input
+input = File.read("real_input.txt")
 elves =
   input
     .split("\n\n")
