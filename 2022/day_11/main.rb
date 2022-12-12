@@ -1,80 +1,76 @@
-Monkey =
-  Struct.new(
-    :items_to_remove,
-    :items,
-    :name,
-    :worry_fn_number,
-    :worry_fn_operation,
-    :divisible_by_test_condition,
-    :throw_to_monkey_if_test_true,
-    :throw_to_monkey_if_test_false,
-    :amount_inspected
-  )
+class Monkey
+  attr_reader :number
+  attr_accessor :items, :inspections
 
-input = File.read("practice_input.txt")
-monkeys =
-  input
-    .split("\n\n")
-    .map do |section|
-      monkey = Monkey.new()
-      section
-        .split("\n")
-        .map(&:strip)
-        .map do |item|
-          numbers_in_item = item.scan(/[0-9]/).join("").to_i
-          case item
-          when /Monkey/
-            monkey.name = numbers_in_item
-          when /Starting items: /
-            items = item.split(/Starting items: /)[1].split(",").map(&:to_i)
-            monkey.items = [*items]
-          when /Operation/
-            monkey.worry_fn_operation = item.scan(%r{(\+|-|\*|/)}).flatten.first
-            monkey.worry_fn_number = numbers_in_item
-          when /Test/
-            monkey.divisible_by_test_condition = numbers_in_item
-          when /If true:/
-            monkey.throw_to_monkey_if_test_true = numbers_in_item
-          when /If false:/
-            monkey.throw_to_monkey_if_test_false = numbers_in_item
-          end
-          monkey.items_to_remove = []
-          monkey.amount_inspected = 0
-        end
-      monkey
-    end
+  def initialize(number)
+    @number = number
+    @items = []
+    @inspections = 0
+  end
 
-def part1(monkeys)
+  def self.find(monkeys, monkey_number)
+    monkeys.select { |monkey| monkey.number == monkey_number }.first
+  end
+end
+
+def parse_input(input)
+  bloc = input.split("\n")
+  {
+    num: bloc[0].scan(/\d+/).first.to_i,
+    operator: bloc[2].scan(/(\+|\*)/).flatten.first,
+    multi: bloc[2].scan(/\d+/),
+    tester: bloc[3].scan(/\d+/).first.to_i,
+    monkey_true: bloc[4].scan(/\d+/).first.to_i,
+    monkey_false: bloc[5].scan(/\d+/).first.to_i
+  }
+end
+
+def part1(input)
+  @monkeys = []
+
+  input.each do |input_turn|
+    bloc = input_turn.split("\n").map { _1.scan(/\d+/) }
+    items = bloc[1].map(&:to_i)
+    monkey = Monkey.new(bloc[0].first.to_i)
+    monkey.items = items
+    @monkeys << monkey
+  end
+
   worry_level = 0
   rounds = 20
   rounds.times do
-    monkeys.each do |monkey|
-      monkey.items.each do |item|
-        if monkey.worry_fn_number == 0
-          worry_level = item.method(monkey.worry_fn_operation).(item)
-        else
-          worry_level =
-            item.method(monkey.worry_fn_operation).(monkey.worry_fn_number)
-        end
-
-        worry_level = (worry_level / 3).round
-        if worry_level % monkey.divisible_by_test_condition == 0
-          monkeys[monkey.throw_to_monkey_if_test_true].items.push(worry_level)
-        else
-          monkeys[monkey.throw_to_monkey_if_test_false].items.push(worry_level)
-        end
-        monkey.items_to_remove.push(item)
-        monkey.amount_inspected += 1
+    input.each do |input_turn|
+      elements = parse_input(input_turn)
+      current_monkey = Monkey.find(@monkeys, elements[:num])
+      current_monkey.items.each do |item|
+        current_monkey.inspections += 1
+        multiplier =
+          elements[:multi].empty? ? item : elements[:multi].first.to_i
+        item =
+          (
+            if elements[:operator] == "+"
+              (item + multiplier) / 3
+            else
+              (item * multiplier) / 3
+            end
+          )
+        next_monkey_num =
+          (
+            if (item % elements[:tester]).zero?
+              elements[:monkey_true]
+            else
+              elements[:monkey_false]
+            end
+          )
+        Monkey.find(@monkeys, next_monkey_num).items << item
       end
-    end
-    monkeys.each do |monkey|
-      monkey.items = monkey.items - monkey.items_to_remove
-      monkey.items_to_remove = []
+      current_monkey.items = []
     end
   end
 
-  monkeys.sort_by { |monkey| -monkey.amount_inspected }
+  @monkeys.map(&:inspections).max(2).reduce(&:*)
 end
 
-one, two = part1(monkeys)
-p "The answer to part 1 is: #{one.amount_inspected * two.amount_inspected}"
+input = File.read("real_input.txt").split("\n\n")
+
+p "The answer to part 1 is: #{part1(input)}" # The answer to part 1 is 55944
