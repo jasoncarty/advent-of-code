@@ -16,9 +16,9 @@ end
 def parse_input(input)
   bloc = input.split("\n")
   {
-    num: bloc[0].scan(/\d+/).first.to_i,
+    number: bloc[0].scan(/\d+/).first.to_i,
     operator: bloc[2].scan(/(\+|\*)/).flatten.first,
-    multi: bloc[2].scan(/\d+/),
+    multiplier: bloc[2].scan(/\d+/),
     tester: bloc[3].scan(/\d+/).first.to_i,
     monkey_true: bloc[4].scan(/\d+/).first.to_i,
     monkey_false: bloc[5].scan(/\d+/).first.to_i
@@ -41,11 +41,11 @@ def part1(input)
   rounds.times do
     input.each do |input_turn|
       elements = parse_input(input_turn)
-      current_monkey = Monkey.find(@monkeys, elements[:num])
+      current_monkey = Monkey.find(@monkeys, elements[:number])
       current_monkey.items.each do |item|
         current_monkey.inspections += 1
         multiplier =
-          elements[:multi].empty? ? item : elements[:multi].first.to_i
+          elements[:multiplier].empty? ? item : elements[:multiplier].first.to_i
         item =
           (
             if elements[:operator] == "+"
