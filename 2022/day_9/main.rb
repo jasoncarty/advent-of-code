@@ -16,42 +16,19 @@ class Rope
     @tail.moves.uniq
   end
 
-  def print_everything
-    curr_x, curr_y = [0, 0]
-
-    sorted = @knots.sort { |a, b| a.position.y - b.position.y } #.reverse.sort { |a, b| a[0] - b[0] }
-    p sorted
-    #.each_with_index { |knot, idx| p idx }
-  end
-
-  def update_knot(amount, current_knot_index)
+  def update_knot(current_knot_index)
     current_knot = @knots[current_knot_index]
     previous_knot = @knots[current_knot_index - 1]
     return if current_knot.nil?
-    #p "---------->> current_knot: #{current_knot}"
-    #p "|--knot: #{current_knot_index}--x: #{previous_knot.position.x}, y: #{previous_knot.position.y}----------|---------x: #{current_knot.position.x}, y: #{current_knot.position.y}---------|"
-    #p "prev knot x: #{previous_knot.position.x} y: #{previous_knot.position.y}"
-    x_diff = (previous_knot.position.x - current_knot.position.x).abs
-    y_diff = (previous_knot.position.y - current_knot.position.y).abs
-    on_different_line =
-      (previous_knot.position.x != current_knot.position.x) &&
-        (previous_knot.position.y != current_knot.position.y)
-    if (x_diff > 1 || y_diff > 1) && on_different_line
-      #p "---------1----------"
-      x, y = previous_knot.moves.last
-      current_knot.position = Position.new(x, y)
-    elsif x_diff > 1
-      #p "---------2----------"
-      current_knot.position.x += amount
-    elsif y_diff > 1
-      #p "---------3----------"
-      current_knot.position.y += amount
+
+    x_diff = (previous_knot.position.x - current_knot.position.x)
+    y_diff = (previous_knot.position.y - current_knot.position.y)
+
+    if x_diff.abs > 1 || y_diff.abs > 1
+      current_knot.position.x += x_diff > 0 ? 1 : -1 unless x_diff.zero?
+      current_knot.position.y += y_diff > 0 ? 1 : -1 unless y_diff.zero?
     end
     current_knot.moves.push([current_knot.position.x, current_knot.position.y])
-    previous_knot.moves.push(
-      [previous_knot.position.x, previous_knot.position.y]
-    )
-    # p "|--knot: #{current_knot_index}--x: #{previous_knot.position.x}, y: #{previous_knot.position.y}----------|---------x: #{current_knot.position.x}, y: #{current_knot.position.y}---------|"
   end
 
   def move(direction, steps)
@@ -59,29 +36,28 @@ class Rope
     when "U"
       steps.times do
         @head.position.y += 1
-        @knots.each_with_index { |v, k| update_knot(1, k + 1) }
-        # self.update_knot(1)
+        @knots.each_with_index { |v, k| update_knot(k + 1) }
+        @head.moves.push([@head.position.x, @head.position.y])
       end
     when "D"
       steps.times do
         @head.position.y -= 1
-        @knots.each_with_index { |v, k| update_knot(-1, k + 1) }
-        # self.update_knot(-1)
+        @knots.each_with_index { |v, k| update_knot(k + 1) }
+        @head.moves.push([@head.position.x, @head.position.y])
       end
     when "R"
       steps.times do
         @head.position.x += 1
-        @knots.each_with_index { |v, k| update_knot(1, k + 1) }
-        #self.update_knot(1)
+        @knots.each_with_index { |v, k| update_knot(k + 1) }
+        @head.moves.push([@head.position.x, @head.position.y])
       end
     when "L"
       steps.times do
         @head.position.x -= 1
-        @knots.each_with_index { |v, k| update_knot(-1, k + 1) }
-        #self.update_knot(-1)
+        @knots.each_with_index { |v, k| update_knot(k + 1) }
+        @head.moves.push([@head.position.x, @head.position.y])
       end
     end
-    self.print_everything
   end
 end
 
@@ -96,21 +72,14 @@ end
 
 def part2(input)
   rope = Rope.new(10)
-  input
-    .take(1)
-    .each do |line|
-      direction, steps = line.split(" ")
-      p "|-----------#{direction} #{steps}-----------|"
-      rope.move(direction, steps.to_i)
-      p ""
-      p ""
-    end
+  input.each do |line|
+    direction, steps = line.split(" ")
+    rope.move(direction, steps.to_i)
+  end
   rope.tail_moves.length
 end
 
 input = File.read("real_input.txt").split("\n")
 
-p "|-----------HEAD-----------|-----------TAIL-----------|"
-
 p "The answer to part 1 is #{part1(input)}" # The answer to part 1 is: 6406
-p "The answer to part 2 is #{part2(input)}" # The answer to part 1 is:
+p "The answer to part 2 is #{part2(input)}" # The answer to part 1 is: 2643
