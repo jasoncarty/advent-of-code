@@ -1,26 +1,17 @@
 class Monkey
   attr_reader :number,
-              :operator,
+              :operation,
               :multiplier,
-              :quotient,
+              :tester,
               :monkey_true,
               :monkey_false
   attr_accessor :items, :inspections
 
-  def initialize(
-    number,
-    items,
-    operator,
-    multiplier,
-    quotient,
-    monkey_true,
-    monkey_false
-  )
+  def initialize(number, items, operation, tester, monkey_true, monkey_false)
     @number = number
-    @operator = operator
+    @operation = operation
     @items = items
-    @multiplier = multiplier
-    @quotient = quotient
+    @tester = tester
     @monkey_true = monkey_true
     @monkey_false = monkey_false
     @inspections = 0
@@ -36,21 +27,29 @@ def parse_input(input)
   {
     number: bloc[0].scan(/\d+/).first.to_i,
     items: bloc[1].scan(/\d+/).map(&:to_i),
-    operator: bloc[2].scan(/(\+|\*)/).flatten.first,
-    multiplier: bloc[2].scan(/\d+/),
-    quotient: bloc[3].scan(/\d+/).first.to_i,
+    operation: bloc[2].scan(/old .+/).first,
+    tester: bloc[3].scan(/\d+/).first.to_i,
     monkey_true: bloc[4].scan(/\d+/).first.to_i,
     monkey_false: bloc[5].scan(/\d+/).first.to_i
   }
 end
 
-def display_monkeys(monkeys)
-  monkeys.lazy.each do |monkey|
-    p "Monkey #{monkey.number} inspected #{monkey.inspections} items."
-  end
+def operation(item, monkey)
+  eval monkey.operation.gsub("old", item.to_s)
 end
 
-def parts(input, rounds, worry_divsor)
+def find_next_monkey(item, monkey)
+  next_monkey_num =
+    (item % monkey.tester).zero? ? monkey.monkey_true : monkey.monkey_false
+  Monkey.find(@monkeys, next_monkey_num)
+end
+
+def apply_relief(item, relief, lcm)
+  item /= relief if relief > 1
+  item %= lcm
+end
+
+def parts(input, rounds, relief)
   @monkeys = []
 
   input.each do |input_turn|
@@ -59,55 +58,35 @@ def parts(input, rounds, worry_divsor)
       Monkey.new(
         elements[:number].freeze,
         elements[:items],
-        elements[:operator].freeze,
-        elements[:multiplier].freeze,
-        elements[:quotient].freeze,
+        elements[:operation].freeze,
+        elements[:tester].freeze,
         elements[:monkey_true].freeze,
         elements[:monkey_false].freeze
       )
     @monkeys << monkey
   end
-
+  lcm = @monkeys.map(&:tester).inject(:*)
   break_points = [20, 1000, 2000, 3000, 4000]
 
   worry_level = 0
   round_count = 1
   rounds.times do
-    #p "-------------Round: #{round_count}------------"
     round_count += 1
     @monkeys.lazy.each do |monkey|
       monkey.items.lazy.each do |item|
         monkey.inspections += 1
-        multiplier =
-          monkey.multiplier.empty? ? item : monkey.multiplier.first.to_i
-        item =
-          (
-            if monkey.operator == "+"
-              (item + multiplier) / worry_divsor
-            else
-              (item * multiplier) / worry_divsor
-            end
-          )
-        next_monkey_num =
-          (
-            if (item % monkey.quotient).zero?
-              monkey.monkey_true
-            else
-              monkey.monkey_false
-            end
-          )
-        Monkey.find(@monkeys, next_monkey_num).items << item
+        item = operation(item, monkey)
+        item = apply_relief(item, relief, lcm)
+        next_monkey = find_next_monkey(item, monkey)
+        next_monkey.items << item
       end
       monkey.items = []
     end
-    display_monkeys(@monkeys) if break_points.include?(round_count)
   end
-
   @monkeys.lazy.map(&:inspections).max(2).reduce(&:*)
 end
 
-input = File.read("practice_input.txt").split("\n\n")
+input = File.read("real_input.txt").split("\n\n")
 
-#p "The answer to part 1 is: #{parts(input, 20, 3)}" # The answer to part 1 is 55944
-
-p "The answer to part 2 is: #{parts(input, 10_000, 1)}" # The answer to part 2 is
+p "The answer to part 1 is: #{parts(input, 20, 3)}" # The answer to part 1 is 55944
+p "The answer to part 2 is: #{parts(input, 10_000, 1)}" # The answer to part 2 is 15117269860
