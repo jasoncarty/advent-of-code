@@ -38,10 +38,10 @@ def operation(item, monkey)
   eval monkey.operation.gsub("old", item.to_s)
 end
 
-def find_next_monkey(item, monkey)
+def find_next_monkey(item, monkey, monkeys)
   next_monkey_num =
     (item % monkey.tester).zero? ? monkey.monkey_true : monkey.monkey_false
-  Monkey.find(@monkeys, next_monkey_num)
+  Monkey.find(monkeys, next_monkey_num)
 end
 
 def apply_relief(item, relief, lcm)
@@ -49,41 +49,41 @@ def apply_relief(item, relief, lcm)
   item %= lcm
 end
 
-def parts(input, rounds, relief)
-  @monkeys = []
-
-  input.each do |input_turn|
+def get_monkeys(input)
+  input.map do |input_turn|
     elements = parse_input(input_turn)
-    monkey =
-      Monkey.new(
-        elements[:number].freeze,
-        elements[:items],
-        elements[:operation].freeze,
-        elements[:tester].freeze,
-        elements[:monkey_true].freeze,
-        elements[:monkey_false].freeze
-      )
-    @monkeys << monkey
+    Monkey.new(
+      elements[:number].freeze,
+      elements[:items],
+      elements[:operation].freeze,
+      elements[:tester].freeze,
+      elements[:monkey_true].freeze,
+      elements[:monkey_false].freeze
+    )
   end
-  lcm = @monkeys.map(&:tester).inject(:*)
+end
+
+def parts(input, rounds, relief)
+  monkeys = get_monkeys(input)
+  lcm = monkeys.map(&:tester).inject(:*)
   break_points = [20, 1000, 2000, 3000, 4000]
 
   worry_level = 0
   round_count = 1
   rounds.times do
     round_count += 1
-    @monkeys.lazy.each do |monkey|
+    monkeys.lazy.each do |monkey|
       monkey.items.lazy.each do |item|
         monkey.inspections += 1
         item = operation(item, monkey)
         item = apply_relief(item, relief, lcm)
-        next_monkey = find_next_monkey(item, monkey)
+        next_monkey = find_next_monkey(item, monkey, monkeys)
         next_monkey.items << item
       end
       monkey.items = []
     end
   end
-  @monkeys.lazy.map(&:inspections).max(2).reduce(&:*)
+  monkeys.lazy.map(&:inspections).max(2).reduce(&:*)
 end
 
 input = File.read("real_input.txt").split("\n\n")
