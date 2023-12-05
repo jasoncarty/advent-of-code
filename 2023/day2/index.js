@@ -16,16 +16,14 @@ const part1 = () => {
     .map((game) => {
       const [gameName, sets] = game.split(':');
       const gameId = parseInt(gameName.match(/\d/g).join(''), 10);
-      const subsets = sets.split(';');
 
-      const rounds = subsets.map((subset) => {
+      const rounds = sets.split(';').map((subset) => {
         const counts = {
           red: 0,
           green: 0,
           blue: 0,
         };
-        const cubes = subset.split(',');
-        cubes.forEach((cube) => {
+        subset.split(',').forEach((cube) => {
           const amount = parseInt(cube.match(/\d/g).join(''), 10);
           const cubeType = cube.match(/(red|blue|green)/g);
           counts[cubeType] += amount;
@@ -45,17 +43,15 @@ const part2 = () => input.split('\n')
   .filter((item) => item !== '')
   .map((game) => {
     const [_, sets] = game.split(':');
-    const subsets = sets.split(';');
-
     const gameCount = {
       red: 0,
       green: 0,
       blue: 0,
     };
-    subsets.forEach((subset) => {
+
+    sets.split(';').forEach((subset) => {
       const subsetCounts = { ...gameCount };
-      const cubes = subset.split(',');
-      cubes.forEach((cube) => {
+      subset.split(',').forEach((cube) => {
         const amount = parseInt(cube.match(/\d/g).join(''), 10);
         const cubeType = cube.match(/(red|blue|green)/g);
         subsetCounts[cubeType] += amount;
