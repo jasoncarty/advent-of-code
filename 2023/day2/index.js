@@ -41,5 +41,34 @@ const part1 = () => {
     .reduce((a, b) => a + b);
 };
 
+const part2 = () => input.split('\n')
+  .filter((item) => item !== '')
+  .map((game) => {
+    const [_, sets] = game.split(':');
+    const subsets = sets.split(';');
+
+    const gameCount = {
+      red: 0,
+      green: 0,
+      blue: 0,
+    };
+    subsets.forEach((subset) => {
+      const subsetCounts = { ...gameCount };
+      const cubes = subset.split(',');
+      cubes.forEach((cube) => {
+        const amount = parseInt(cube.match(/\d/g).join(''), 10);
+        const cubeType = cube.match(/(red|blue|green)/g);
+        subsetCounts[cubeType] += amount;
+        if (gameCount[cubeType] < amount) {
+          gameCount[cubeType] = amount;
+        }
+      });
+    });
+    return Object.values(gameCount).reduce((a, b) => a * b);
+  }).reduce((a, b) => a + b);
+
 const firstAnswer = part1(); // 2406
 console.log(`The answer to part 1 is: ${firstAnswer}`);
+
+const secondAnswer = part2(); // 78375
+console.log(`The answer to part 1 is: ${secondAnswer}`);
