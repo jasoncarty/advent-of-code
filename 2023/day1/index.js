@@ -52,6 +52,6 @@ const part2 = () => input
   }).reduce((a, b) => a + b);
 
 const firstAnswer = part1(); // -> answer 55108
-console.log('The answer to part 2 is: ', firstAnswer);
+console.log('The answer to part 1 is: ', firstAnswer);
 const secondAnswer = part2(); // -> answer 56324
 console.log('The answer to part 2 is: ', secondAnswer);
