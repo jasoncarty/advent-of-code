@@ -1,13 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
+const { getRange } = require('../../utils');
+
 const filePath = path.resolve(`${__dirname}/real_input.txt`);
 const input = fs.readFileSync(filePath, { encoding: 'utf-8' });
-
-const getRange = (start, stop, step) => Array.from(
-  { length: (stop - start) / step + 1 },
-  (value, index) => start + index * step,
-);
 
 const part1 = () => {
   const parts = [];

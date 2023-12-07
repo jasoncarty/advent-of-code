@@ -42,7 +42,7 @@ const part1 = () => {
 const part2 = () => input.split('\n')
   .filter((item) => item !== '')
   .map((game) => {
-    const [_, sets] = game.split(':');
+    const sets = game.split(':')[1];
     const gameCount = {
       red: 0,
       green: 0,
