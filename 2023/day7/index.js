@@ -20,14 +20,43 @@ const cardToPointsMap = {
   2: 2,
 };
 
+const cardToPointsMap2 = {
+  A: 14,
+  K: 13,
+  Q: 12,
+  T: 11,
+  9: 10,
+  8: 9,
+  7: 8,
+  6: 7,
+  5: 6,
+  4: 5,
+  3: 4,
+  2: 3,
+  J: 2,
+};
+
 const countDuplicates = (string) => {
   const counts = {};
   string.split('').forEach((x) => { counts[x] = (counts[x] || 0) + 1; });
   return counts;
 };
 
-const convertCardsToPoints = (cards) => {
-  const counts = Object.values(countDuplicates(cards));
+const convertCardsToPoints = (cards, jokerIsHighest = false) => {
+  const duplicates = countDuplicates(cards);
+  const counts = Object.values(duplicates);
+  const keys = Object.keys(duplicates);
+  if (jokerIsHighest && keys.includes('J')) {
+    let replaced = cards.replaceAll('J', '');
+    if (replaced === '') {
+      replaced = 'AAAAA';
+    }
+
+    const newDuplicates = countDuplicates(replaced);
+    const highestCard = Object.entries(newDuplicates)
+      .sort((a, b) => b[1] - a[1])[0][0];
+    return convertCardsToPoints(cards.replaceAll('J', highestCard));
+  }
   if (counts.includes(5)) {
     return 7;
   }
@@ -50,12 +79,16 @@ const convertCardsToPoints = (cards) => {
   return 1;
 };
 
-const compareHighestCard = (a, b) => {
+const compareHighestCard = (a, b, jokerIsHighest = false) => {
+  let map = cardToPointsMap;
+  if (jokerIsHighest) {
+    map = cardToPointsMap2;
+  }
   const splitA = a.split('');
   let result = 0;
   for (let i = 0; i < splitA.length; i += 1) {
-    const aPoints = cardToPointsMap[splitA[i]];
-    const bPoints = cardToPointsMap[b[i]];
+    const aPoints = map[splitA[i]];
+    const bPoints = map[b[i]];
     if (aPoints > bPoints) {
       result = 1;
       break;
@@ -68,11 +101,11 @@ const compareHighestCard = (a, b) => {
   return result;
 };
 
-const sortByRank = (a, b) => {
+const sortByRank = (a, b, jokerIsHighest = false) => {
   const [cardsA] = a;
   const [cardsB] = b;
-  const pointsA = convertCardsToPoints(cardsA);
-  const pointsB = convertCardsToPoints(cardsB);
+  const pointsA = convertCardsToPoints(cardsA, jokerIsHighest);
+  const pointsB = convertCardsToPoints(cardsB, jokerIsHighest);
   if (pointsA > pointsB) {
     return 1;
   }
@@ -80,7 +113,7 @@ const sortByRank = (a, b) => {
     return -1;
   }
   if (pointsA === pointsB) {
-    return compareHighestCard(cardsA, cardsB);
+    return compareHighestCard(cardsA, cardsB, jokerIsHighest);
   }
   return 0;
 };
@@ -95,9 +128,18 @@ const part1 = () => input
   .map((hand, index) => hand[1] * (index + 1))
   .reduce((a, b) => a + b);
 
-const firstAnswer = part1();
+const part2 = () => input
+  .split('\n')
+  .filter((item) => item !== '')
+  .map((item) => {
+    const [cards, bid] = item.split(' ');
+    return [cards, Number(bid)];
+  }).sort((a, b) => sortByRank(a, b, true))
+  .map((hand, index) => hand[1] * (index + 1))
+  .reduce((a, b) => a + b);
+
+const firstAnswer = part1(); // 248422077
 console.log('The answer to part 1 is: ', firstAnswer);
 
-/* const secondAnswer = part2(); // 29891250
+const secondAnswer = part2(); // 249817836
 console.log('The answer to part 2 is: ', secondAnswer);
- */
